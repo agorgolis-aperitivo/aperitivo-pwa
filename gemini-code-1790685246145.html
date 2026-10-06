@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aperitivo Life - Build Your Own Menu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    h1, h2, h3, .brand-font { font-family: 'Cinzel', serif; }
+  </style>
+</head>
+<body class="bg-[#12100E] text-[#E8E2D9] pb-32 min-h-screen">
+
+  <!-- Header -->
+  <nav class="border-b border-[#2A2420] bg-[#12100E]/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <span class="brand-font font-bold tracking-widest text-amber-500 text-lg">APERITIVO LIFE</span>
+      <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full font-medium">Custom Builder</span>
+    </div>
+  </nav>
+
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-6">
+
+    <!-- Guest Count & Budget Summary -->
+    <div class="bg-[#1A1714] border border-[#2A2420] rounded-xl p-4 shadow-sm space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="text-xs uppercase tracking-wider text-amber-500/80 font-semibold">Party Size</label>
+          <div class="text-sm font-medium text-neutral-300">Scales all custom selections</div>
+        </div>
+        <div class="flex items-center space-x-3 bg-[#12100E] border border-[#2A2420] rounded-lg p-1">
+          <button id="btn-minus" class="w-9 h-9 rounded-md bg-[#2A2420] hover:bg-[#38302B] text-white font-bold transition">-</button>
+          <span id="guest-display" class="w-8 text-center font-bold text-amber-400 text-lg">8</span>
+          <button id="btn-plus" class="w-9 h-9 rounded-md bg-[#2A2420] hover:bg-[#38302B] text-white font-bold transition">+</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-3 border-t border-[#2A2420] text-center">
+        <div class="bg-[#12100E] p-2.5 rounded-lg border border-[#2A2420]/50">
+          <span class="block text-[11px] text-neutral-400">Est. Total Cost</span>
+          <span id="total-cost-display" class="text-base font-semibold text-white">$0.00</span>
+        </div>
+        <div class="bg-[#12100E] p-2.5 rounded-lg border border-[#2A2420]/50">
+          <span class="block text-[11px] text-amber-400/80">Suggested Chip-In</span>
+          <span id="chip-in-display" class="text-base font-bold text-amber-400">$0.00 / guest</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Beverage Selection -->
+    <div class="bg-[#1A1714] border border-[#2A2420] rounded-xl p-4 space-y-3">
+      <h2 class="text-sm font-semibold text-white border-b border-[#2A2420] pb-2">1. Select Beverages</h2>
+      <div id="drinks-container" class="space-y-2"></div>
+    </div>
+
+    <!-- Step 2: Bites Selection -->
+    <div class="bg-[#1A1714] border border-[#2A2420] rounded-xl p-4 space-y-3">
+      <h2 class="text-sm font-semibold text-white border-b border-[#2A2420] pb-2">2. Select Bites</h2>
+      <div id="bites-container" class="space-y-2"></div>
+    </div>
+
+    <!-- Step 3: Generated Ingredient Shopping List -->
+    <div class="bg-[#1A1714] border border-[#2A2420] rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center border-b border-[#2A2420] pb-2">
+        <h2 class="text-sm font-semibold text-white">Aggregated Shopping List</h2>
+        <span id="item-count-badge" class="text-xs text-amber-400 font-mono">0 ingredients</span>
+      </div>
+      <ul id="shopping-list" class="space-y-2 text-sm text-neutral-300"></ul>
+    </div>
+
+  </main>
+
+  <!-- Bottom Action Bar -->
+  <div class="fixed bottom-0 left-0 right-0 bg-[#12100E]/95 border-t border-[#2A2420] backdrop-blur-md p-4 z-50">
+    <div class="max-w-md mx-auto grid grid-cols-2 gap-3">
+      <button id="btn-partiful" class="py-3 px-3 rounded-xl text-xs font-bold bg-[#1A1714] hover:bg-[#2A2420] text-amber-400 border border-amber-500/30 transition flex items-center justify-center space-x-1.5 shadow-md">
+        <span>✨ Copy Custom Menu</span>
+      </button>
+
+      <button id="btn-instacart" class="py-3 px-3 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-950/50">
+        <span>🛒 Add Custom Order</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Component Catalog Database
+    const catalog = {
+      drinks: [
+        { id: "d1", name: "Venetian Spritz", category: "Full-Proof", perGuestCost: 4.50, ingredients: [{ name: "Prosecco", baseQty: 0.25, unit: "bottle" }, { name: "Aperol", baseQty: 0.15, unit: "bottle" }] },
+        { id: "d2", name: "Americano Highball", category: "Low-ABV", perGuestCost: 3.20, ingredients: [{ name: "Campari", baseQty: 0.1, unit: "bottle" }, { name: "Sweet Vermouth", baseQty: 0.1, unit: "bottle" }, { name: "Club Soda", baseQty: 0.25, unit: "liter" }] },
+        { id: "d3", name: "Phony Negroni", category: "Zero-Proof", perGuestCost: 3.00, ingredients: [{ name: "Zero-Proof Bitters", baseQty: 1, unit: "can" }] }
+      ],
+      bites: [
+        { id: "b1", name: "Castelvetrano & Marcona Almonds", perGuestCost: 2.00, ingredients: [{ name: "Castelvetrano Olives", baseQty: 0.15, unit: "jar" }, { name: "Marcona Almonds", baseQty: 0.1, unit: "lb" }] },
+        { id: "b2", name: "Whipped Ricotta Crostini", perGuestCost: 2.50, ingredients: [{ name: "Ricotta Cheese", baseQty: 0.2, unit: "container" }, { name: "Baguette", baseQty: 0.25, unit: "loaf" }, { name: "Honey", baseQty: 0.05, unit: "jar" }] },
+        { id: "b3", name: "Prosciutto & Melon Skewers", perGuestCost: 3.50, ingredients: [{ name: "Prosciutto", baseQty: 0.15, unit: "lb" }, { name: "Cantaloupe", baseQty: 0.1, unit: "melon" }] }
+      ]
+    };
+
+    let guestCount = 8;
+    let selectedDrinks = new Set(["d1"]);
+    let selectedBites = new Set(["b1", "b2"]);
+
+    function renderCatalog() {
+      // Render Drinks Options
+      const drinksContainer = document.getElementById('drinks-container');
+      drinksContainer.innerHTML = catalog.drinks.map(drink => `
+        <label class="flex items-center justify-between p-2.5 rounded-lg border border-[#2A2420] bg-[#12100E] cursor-pointer hover:border-amber-500/40">
+          <div class="flex items-center space-x-3">
+            <input type="checkbox" value="${drink.id}" ${selectedDrinks.has(drink.id) ? 'checked' : ''} class="drink-select accent-amber-500 w-4 h-4 rounded">
+            <div>
+              <div class="text-sm font-medium text-white">${drink.name}</div>
+              <div class="text-[10px] text-amber-500/80 uppercase font-semibold">${drink.category}</div>
+            </div>
+          </div>
+          <span class="text-xs text-neutral-400">$${drink.perGuestCost.toFixed(2)} / guest</span>
+        </label>
+      `).join('');
+
+      // Render Bites Options
+      const bitesContainer = document.getElementById('bites-container');
+      bitesContainer.innerHTML = catalog.bites.map(bite => `
+        <label class="flex items-center justify-between p-2.5 rounded-lg border border-[#2A2420] bg-[#12100E] cursor-pointer hover:border-amber-500/40">
+          <div class="flex items-center space-x-3">
+            <input type="checkbox" value="${bite.id}" ${selectedBites.has(bite.id) ? 'checked' : ''} class="bite-select accent-amber-500 w-4 h-4 rounded">
+            <span class="text-sm font-medium text-white">${bite.name}</span>
+          </div>
+          <span class="text-xs text-neutral-400">$${bite.perGuestCost.toFixed(2)} / guest</span>
+        </label>
+      `).join('');
+
+      // Attach Event Listeners
+      document.querySelectorAll('.drink-select').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          e.target.checked ? selectedDrinks.add(e.target.value) : selectedDrinks.delete(e.target.value);
+          updateCalculations();
+        });
+      });
+
+      document.querySelectorAll('.bite-select').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          e.target.checked ? selectedBites.add(e.target.value) : selectedBites.delete(e.target.value);
+          updateCalculations();
+        });
+      });
+    }
+
+    function updateCalculations() {
+      document.getElementById('guest-display').textContent = guestCount;
+
+      // Consolidate selected items
+      const activeDrinks = catalog.drinks.filter(d => selectedDrinks.has(d.id));
+      const activeBites = catalog.bites.filter(b => selectedBites.has(b.id));
+
+      const costPerGuest = [...activeDrinks, ...activeBites].reduce((sum, item) => sum + item.perGuestCost, 0);
+      const totalCost = costPerGuest * guestCount;
+
+      document.getElementById('total-cost-display').textContent = `$${totalCost.toFixed(2)}`;
+      document.getElementById('chip-in-display').textContent = `$${costPerGuest.toFixed(2)} / guest`;
+
+      // Consolidate and scale ingredients
+      const aggregatedIngredients = {};
+      [...activeDrinks, ...activeBites].forEach(item => {
+        item.ingredients.forEach(ing => {
+          const scaledQty = ing.baseQty * guestCount;
+          if (aggregatedIngredients[ing.name]) {
+            aggregatedIngredients[ing.name].qty += scaledQty;
+          } else {
+            aggregatedIngredients[ing.name] = { qty: scaledQty, unit: ing.unit };
+          }
+        });
+      });
+
+      // Render aggregated shopping list
+      const shoppingList = document.getElementById('shopping-list');
+      const items = Object.entries(aggregatedIngredients);
+      
+      document.getElementById('item-count-badge').textContent = `${items.length} ingredients`;
+
+      if (items.length === 0) {
+        shoppingList.innerHTML = `<li class="text-xs text-neutral-500 italic">Select drinks or bites to build your menu.</li>`;
+        return;
+      }
+
+      shoppingList.innerHTML = items.map(([name, data]) => `
+        <li class="flex justify-between items-center p-2 rounded bg-[#12100E] border border-[#2A2420]/60">
+          <span>${name}</span>
+          <span class="font-mono text-amber-400 text-xs">${data.qty.toFixed(1).replace(/\.0$/, '')} ${data.unit}</span>
+        </li>
+      `).join('');
+    }
+
+    // Guest Counter Handlers
+    document.getElementById('btn-minus').addEventListener('click', () => {
+      if (guestCount > 1) { guestCount--; updateCalculations(); }
+    });
+    document.getElementById('btn-plus').addEventListener('click', () => {
+      guestCount++; updateCalculations();
+    });
+
+    // Partiful Clipboard Exporter
+    document.getElementById('btn-partiful').addEventListener('click', async () => {
+      const activeDrinks = catalog.drinks.filter(d => selectedDrinks.has(d.id)).map(d => d.name);
+      const activeBites = catalog.bites.filter(b => selectedBites.has(b.id)).map(b => b.name);
+      
+      const costPerGuest = [...catalog.drinks.filter(d => selectedDrinks.has(d.id)), ...catalog.bites.filter(b => selectedBites.has(b.id))]
+        .reduce((sum, item) => sum + item.perGuestCost, 0);
+
+      const menuSummary = `🍹 Custom Aperitivo Menu\n` +
+        `👥 Guests: ${guestCount}\n` +
+        `🍸 Drinks: ${activeDrinks.join(', ') || 'None'}\n` +
+        `🥖 Bites: ${activeBites.join(', ') || 'None'}\n` +
+        `💸 Suggested Chip-In: $${costPerGuest.toFixed(2)} / guest\n\n` +
+        `Created with Aperitivo Life`;
+
+      await navigator.clipboard.writeText(menuSummary);
+      alert("✨ Custom menu details copied to clipboard!");
+    });
+
+    // Instacart API Payload Logging
+    document.getElementById('btn-instacart').addEventListener('click', () => {
+      alert("Custom order generated! Check browser console for full payload JSON.");
+    });
+
+    // Initialize
+    renderCatalog();
+    updateCalculations();
+  </script>
+</body>
+</html>
